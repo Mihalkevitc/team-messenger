@@ -3,6 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const { sequelize } = require('./models');
 const authRoutes = require('./routes/auth.routes');
+const chatRoutes = require('./routes/chat.routes');
+const teamRoutes = require('./routes/team.routes');
+const userRoutes = require('./routes/users');
+
 
 // Создаем экземпляр приложения
 const app = express();
@@ -21,6 +25,9 @@ app.get('/', (req, res) => {
 
 // Подключение маршрутов
 app.use('/api/auth', authRoutes);
+app.use('/api/chats', chatRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/users', userRoutes);
 
 // Подключение к PostgreSQL
 sequelize.authenticate()

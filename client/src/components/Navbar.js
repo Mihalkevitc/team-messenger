@@ -3,17 +3,46 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 export default function MainNavbar() {
-  const [isAuth, setIsAuth] = useState(!!localStorage.getItem('token'));
+ const [isAuth, setIsAuth] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  // Следим за изменениями в localStorage
   useEffect(() => {
-    const handleStorageChange = () => {
-      setIsAuth(!!localStorage.getItem('token'));
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsAuth(false);
+        setAuthChecked(true);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/users/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log('Текущий пользователь:', data.user);
+          setIsAuth(true);
+        } else {
+          // Токен неверен или просрочен
+          localStorage.removeItem('token');
+          setIsAuth(false);
+        }
+      } catch (err) {
+        console.error('Ошибка при проверке авторизации:', err);
+        setIsAuth(false);
+      }
+
+      setAuthChecked(true);
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    checkAuth();
   }, []);
+
+  if (!authChecked) return null; // Пока не проверили — не рендерим
   
   // Функция для выхода
   const handleLogout = () => {
