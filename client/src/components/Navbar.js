@@ -23,8 +23,6 @@ export default function MainNavbar() {
         });
 
         if (res.ok) {
-          const data = await res.json();
-          console.log('Текущий пользователь:', data.user);
           setIsAuth(true);
         } else {
           // Токен неверен или просрочен
