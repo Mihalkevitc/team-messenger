@@ -2,19 +2,31 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Form, Button, ListGroup, Badge } from 'react-bootstrap';
 import { io } from 'socket.io-client'; // подключение к WebSocket через socket.io-client.
 import axios from 'axios';
-import { 
-  PeopleFill, 
-  ShieldFill,  // для админов
-  PersonBadgeFill,  // для менеджеров
-  CodeSlash,  // для разработчиков
-  PaletteFill  // для дизайнеров
-} from 'react-bootstrap-icons';
 
-const ChatWindow = ({ chat, user, onNewMessage }) => {
+
+const ChatWindow = ({ chat, user, onMessageSent }) => {
   const [messages, setMessages] = useState([]); // список всех сообщений.
   const [newMessage, setNewMessage] = useState(''); // текст текущего сообщения, которое вводит пользователь.
   const [socket, setSocket] = useState(null); // объект подключения WebSocket.
   const messagesEndRef = useRef(null); // ссылка на последний элемент в списке сообщений (для прокрутки вниз).
+
+  // Обработчик обновления списка чатов при отправке сообщения
+  useEffect(() => {
+    if (!chat || !socket) return;
+
+    // Обработчик обновления чатов
+    const handleChatUpdate = () => {
+      if (onMessageSent) {
+        onMessageSent();
+      }
+    };
+
+    socket.on('chatUpdated', handleChatUpdate);
+
+    return () => {
+      socket.off('chatUpdated', handleChatUpdate);
+    };
+  }, [socket, chat, onMessageSent]);
 
   // Загрузка истории сообщений
   // Срабатывает при изменении chat (то есть при выборе нового чата).

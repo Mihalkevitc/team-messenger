@@ -622,7 +622,10 @@ export default function HomePage() {
               {/* Основное содержимое */}
               <div className="flex-grow-1 overflow-auto p-3">
                 {activeTab === 'chats' ? (
-                  <ChatWindow chat={activeItem} user={user} />
+                  <ChatWindow chat={activeItem} 
+                  user={user} 
+                  onMessageSent={fetchData} // Эта функция будет вызываться при обновлении чатов
+                  />
                   // Отображение сообщений чата
                   // activeItem.messages?.length > 0 ? (
                   //   activeItem.messages.map(message => (
