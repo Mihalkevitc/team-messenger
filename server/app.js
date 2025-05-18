@@ -7,7 +7,6 @@ const chatRoutes = require('./routes/chat.routes');
 const teamRoutes = require('./routes/team.routes');
 const userRoutes = require('./routes/users');
 
-
 // Создаем экземпляр приложения
 const app = express();
 

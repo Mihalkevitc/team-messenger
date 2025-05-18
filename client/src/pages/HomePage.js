@@ -8,8 +8,30 @@ import {
   Modal, Alert
 } from 'react-bootstrap';
 import { Search, PlusCircle, PeopleFill, ChatLeftText } from 'react-bootstrap-icons';
+import ChatWindow from '../components/ChatWindow';
 
 export default function HomePage() {
+  // Добавляем состояние для текущего пользователя
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/users/me', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setUser(res.data);
+    } catch (err) {
+      console.error('Ошибка при получении пользователя', err);
+    }
+  };
+
+  fetchUser();
+}, []);
+
+
   // Состояния для управления интерфейсом
   const [items, setItems] = useState([{
     id: null,
@@ -43,6 +65,7 @@ export default function HomePage() {
   // Состояние для формы поиска пользователей
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  
 
   // Загрузка данных при изменении активной вкладки
   // UseEffect для загрузки данных при изменении активной вкладки
@@ -599,22 +622,23 @@ export default function HomePage() {
               {/* Основное содержимое */}
               <div className="flex-grow-1 overflow-auto p-3">
                 {activeTab === 'chats' ? (
+                  <ChatWindow chat={activeItem} user={user} />
                   // Отображение сообщений чата
-                  activeItem.messages?.length > 0 ? (
-                    activeItem.messages.map(message => (
-                      <div key={message.id} className="mb-3">
-                        <div className="d-flex">
-                          <strong className="me-2">{message.sender.name}:</strong>
-                          <span>{message.text}</span>
-                        </div>
-                        <small className="text-muted">
-                          {new Date(message.createdAt).toLocaleTimeString()}
-                        </small>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-muted text-center mt-5">Нет сообщений</div>
-                  )
+                  // activeItem.messages?.length > 0 ? (
+                  //   activeItem.messages.map(message => (
+                  //     <div key={message.id} className="mb-3">
+                  //       <div className="d-flex">
+                  //         <strong className="me-2">{message.sender.name}:</strong>
+                  //         <span>{message.text}</span>
+                  //       </div>
+                  //       <small className="text-muted">
+                  //         {new Date(message.createdAt).toLocaleTimeString()}
+                  //       </small>
+                  //     </div>
+                  //   ))
+                  // ) : (
+                  //   <div className="text-muted text-center mt-5">Нет сообщений</div>
+                  // )
                 ) : (
                   // Отображение информации о команде
                   // Отображение краткой информации о команде
@@ -735,7 +759,7 @@ export default function HomePage() {
               </div>
               
               {/* Форма ввода сообщения (только для чатов) */}
-              {activeTab === 'chats' && (
+              {/* {activeTab === 'chats' && (
                 <div className="p-3 border-top">
                   <Form className="d-flex">
                     <Form.Control
@@ -746,7 +770,7 @@ export default function HomePage() {
                     <Button variant="primary">Отправить</Button>
                   </Form>
                 </div>
-              )}
+              )} */}
             </>
           ) : (
             // Заглушка при отсутствии выбранного чата/команды
