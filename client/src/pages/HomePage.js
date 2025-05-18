@@ -1,6 +1,7 @@
 // client/src/pages/HomePage.js
 // Главная страница приложения с чатами и командами
 
+import { io } from 'socket.io-client'; // подключение к WebSocket через socket.io-client.
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
@@ -11,6 +12,30 @@ import { Search, PlusCircle, PeopleFill, ChatLeftText } from 'react-bootstrap-ic
 import ChatWindow from '../components/ChatWindow';
 
 export default function HomePage() {
+// Добавим в HomePage.js, рядом с другими хуками
+const [socket, setSocket] = useState(null);
+
+// Подключение к WebSocket
+useEffect(() => {
+  const newSocket = io('http://localhost:5000', {
+    auth: {
+      token: localStorage.getItem('token')
+    }
+  });
+
+  setSocket(newSocket);
+
+  // Обработчик обновления чатов
+  newSocket.on('chatUpdated', ({ chatId }) => {
+    if (activeTab === 'chats') {
+      fetchData(); // Обновляем список чатов
+    }
+  });
+
+  return () => {
+    newSocket.disconnect();
+  };
+}, []);
   // Добавляем состояние для текущего пользователя
   const [user, setUser] = useState(null);
 
@@ -123,6 +148,15 @@ export default function HomePage() {
         console.log('response.data:', response.data);
 
         setItems(response.data); // Сохраняем данные, полученные от axios в состояние items (хук React)
+
+        // Обновляем активный чат, если он есть
+        if (activeItem && activeTab === 'chats') {
+          const updatedChat = response.data.find(chat => chat.id === activeItem.id);
+          if (updatedChat) {
+            setActiveItem(updatedChat);
+          }
+        }
+
         return response.data; // <<< Возвращаем данные, чтобы можно было использовать их в других местах кода
       } catch (error) {
         console.error('Ошибка загрузки данных:', error);

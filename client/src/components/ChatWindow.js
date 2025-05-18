@@ -110,6 +110,10 @@ const ChatWindow = ({ chat, user, onMessageSent }) => {
         });
         // Очищает поле ввода и состояние newMessage.
         setNewMessage('');
+        // Вызываем колбэк для обновления списка чатов
+        if (onMessageSent) {
+          onMessageSent();
+        }
         } catch (err) {
         console.error('Ошибка при отправке сообщения:', err);
         }

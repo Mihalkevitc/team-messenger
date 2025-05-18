@@ -77,7 +77,7 @@ module.exports = (httpServer) => {
         io.to(`chat_${chatId}`).emit('message', fullMessage);
 
         // Добавляем новое событие для обновления списка чатов
-        io.to(`chat_${chatId}`).emit('chatUpdated', { chatId });
+        io.emit('chatUpdated', { chatId });
 
       } catch (err) {
         console.error('Error sending message:', err);
