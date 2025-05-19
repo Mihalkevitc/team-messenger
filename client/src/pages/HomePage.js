@@ -91,6 +91,18 @@ useEffect(() => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   
+  // Состояния для формы поиска членов чата
+  const [selectedParticipant, setSelectedParticipant] = useState(null);
+  const [participantSearchEmail, setParticipantSearchEmail] = useState('');
+  const [participantSearchResults, setParticipantSearchResults] = useState([]);
+  const [isParticipantSearching, setIsParticipantSearching] = useState(false);
+
+  // Состояния для управления модальным окном чата
+  const [showChatSettings, setShowChatSettings] = useState(false);
+  const [chatSettingsData, setChatSettingsData] = useState({
+    participants: []
+  });
+  
 
   // Загрузка данных при изменении активной вкладки
   // UseEffect для загрузки данных при изменении активной вкладки
@@ -207,10 +219,12 @@ useEffect(() => {
         setError('Название не может быть пустым');
         return;
       }
-
+      console.log('Выбранный участник selectedParticipant:', selectedParticipant);
       const endpoint = activeTab === 'chats' ? '/api/chats' : '/api/teams';
       const payload = activeTab === 'chats' 
-        ? { name: newItemName }
+        ? { name: newItemName,
+            participantId: selectedParticipant?.id // Используем одного участника
+          }
         : { 
             name: newItemName, 
             description: newItemDescription,
@@ -254,6 +268,7 @@ useEffect(() => {
       setShowCreateModal(false); // Закрываем модальное окно создания элемента.
       setNewItemName(''); // Очищаем поля ввода
       setNewItemDescription(''); //Очищаем поля ввода
+      setSelectedParticipant(null);
       setError(null);
     } catch (error) {
       console.error('Ошибка создания:', error);
@@ -502,6 +517,85 @@ useEffect(() => {
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Обработчики чатов
+
+  // Функция для поиска участников чата
+  const searchParticipant = async (email) => {
+    try {
+      setIsParticipantSearching(true);
+      const response = await axios.get(`http://localhost:5000/api/users/search?email=${email}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setParticipantSearchResults(response.data);
+    } catch (error) {
+      console.error('Ошибка поиска пользователей:', error);
+      setError('Не удалось выполнить поиск');
+    } finally {
+      setIsParticipantSearching(false);
+    }
+  };
+
+  const handleParticipantSearchChange = (e) => {
+    const email = e.target.value;
+    setParticipantSearchEmail(email);
+    
+    if (email.length >= 3) {
+      searchParticipant(email);
+    } else {
+      setParticipantSearchResults([]);
+    }
+  };
+
+  const selectParticipant = (user) => {
+    setSelectedParticipant(user);
+    setParticipantSearchEmail('');
+    setParticipantSearchResults([]);
+  };
+
+  const removeSelectedParticipant = () => {
+    setSelectedParticipant(null);
+  };
+
+  // Обработчик удаления чата
+  const handleDeleteChat = async () => {
+    try {
+      if (!activeItem) {
+        setError('Не выбран чат');
+        return;
+      }
+
+      await axios.delete(
+        `http://localhost:5000/api/chats/${activeItem.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      // Обновляем список чатов
+      const response = await axios.get(
+        'http://localhost:5000/api/chats',
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      setItems(response.data);
+      setActiveItem(null);
+      setShowChatSettings(false);
+    } catch (error) {
+      console.error('Ошибка при удалении чата:', error);
+      setError(error.response?.data?.error || 'Не удалось удалить чат');
+    }
+  };
+
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   return (
     <Container fluid className="p-0" style={{ height: containerHeight }}>
@@ -509,6 +603,8 @@ useEffect(() => {
       <Modal show={showCreateModal} onHide={() => {
         setShowCreateModal(false);
         setError(null);
+        setSelectedParticipant(null);
+        setParticipantSearchEmail('');
       }}>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -529,6 +625,54 @@ useEffect(() => {
               />
             </Form.Group>
             
+            {activeTab === 'chats' && (
+              <>
+                <Form.Group className="mb-3">
+                  <Form.Label>Добавить участника</Form.Label>
+                  {selectedParticipant ? (
+                    <div className="d-flex align-items-center mb-2 p-2 bg-light rounded">
+                      <div className="flex-grow-1">
+                        {selectedParticipant.firstName} {selectedParticipant.lastName} ({selectedParticipant.email})
+                      </div>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm"
+                        onClick={removeSelectedParticipant}
+                      >
+                        Удалить
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <Form.Control
+                        type="email"
+                        placeholder="Введите email участника"
+                        value={participantSearchEmail}
+                        onChange={handleParticipantSearchChange}
+                      />
+                      {isParticipantSearching && <small>Поиск...</small>}
+                    </>
+                  )}
+                </Form.Group>
+                
+                {participantSearchResults.length > 0 && !selectedParticipant && (
+                  <div className="mb-3">
+                    <ListGroup>
+                      {participantSearchResults.map(user => (
+                        <ListGroup.Item 
+                          key={user.id}
+                          action
+                          onClick={() => selectParticipant(user)}
+                        >
+                          <div>{user.firstName} {user.lastName} ({user.email})</div>
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  </div>
+                )}
+              </>
+            )}
+            
             {activeTab === 'teams' && (
               <Form.Group className="mb-3">
                 <Form.Label>Описание</Form.Label>
@@ -544,7 +688,10 @@ useEffect(() => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
+          <Button variant="secondary" onClick={() => {
+            setShowCreateModal(false);
+            setSelectedParticipant(null);
+          }}>
             Отмена
           </Button>
           <Button variant="primary" onClick={handleCreateItem}>
@@ -635,19 +782,31 @@ useEffect(() => {
                   )}
                   {activeItem.name}
                 </h4>
-                {console.log('activeItem.teamChats', activeItem.teamChats)}
-                {console.log('activeTab:', activeTab, 'activeItem:', activeItem)}
-
-                {/* Кнопка перехода в чат команды (только для вкладки команд) */}
-                {activeTab === 'teams' && activeItem?.teamChats?.length > 0 && (
-                <Button 
-                  variant="outline-primary"
-                  size="sm"
-                  onClick={handleGoToTeamChat}
-                >
-                  <ChatLeftText className="me-1" />
-                  Перейти в чат
-                </Button>
+                
+                {/* Кнопки управления в зависимости от типа элемента */}
+                {activeTab === 'teams' && activeItem?.teamChats?.length > 0 ? (
+                  <Button 
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={handleGoToTeamChat}
+                  >
+                    <ChatLeftText className="me-1" />
+                    Перейти в чат
+                  </Button>
+                ) : activeTab === 'chats' && (
+                  <Button 
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={() => {
+                      console.log('activeItem при переходе в настройки чата:', activeItem);
+                      setChatSettingsData({
+                        participants: activeItem.participants || []
+                      });
+                      setShowChatSettings(true);
+                    }}
+                  >
+                    Управление чатом
+                  </Button>
                 )}
               </div>
 
@@ -941,6 +1100,46 @@ useEffect(() => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+
+      {/* Модальное окно настроек чата */}
+      {/* Модальное окно настроек чата */}
+<Modal show={showChatSettings} onHide={() => setShowChatSettings(false)}>
+  <Modal.Header closeButton>
+    <Modal.Title>
+      {activeItem?.teamId ? 'Чат команды' : 'Настройки чата'}
+    </Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    {error && <Alert variant="danger">{error}</Alert>}
+    
+    <h5>Участники чата:</h5>
+    <ListGroup>
+      {chatSettingsData.participants?.length > 0 ? (
+        chatSettingsData.participants.map(participant => (
+          <ListGroup.Item key={participant.id}>
+            {participant.firstName} {participant.lastName} ({participant.email})
+          </ListGroup.Item>
+        ))
+      ) : (
+        <ListGroup.Item className="text-muted">
+          Нет участников
+        </ListGroup.Item>
+      )}
+    </ListGroup>
+  </Modal.Body>
+  <Modal.Footer>
+    {/* Показываем кнопку удаления только для НЕ командных чатов */}
+    {!activeItem?.teamId && (
+      <Button variant="danger" onClick={handleDeleteChat}>
+        Удалить чат
+      </Button>
+    )}
+    <Button variant="secondary" onClick={() => setShowChatSettings(false)}>
+      Закрыть
+    </Button>
+  </Modal.Footer>
+</Modal>
 
     </Container>
   );

@@ -16,7 +16,7 @@ router.get('/search', authenticate, async (req, res) => {
           [Op.iLike]: `%${email}%`
         }
       },
-      attributes: ['firstName', 'lastName', 'email']  // Уточнить нужные поля
+      attributes: ['firstName', 'lastName', 'email', 'id']  // Уточнить нужные поля
     });
 
     res.json(users);
@@ -29,7 +29,9 @@ router.get('/search', authenticate, async (req, res) => {
 
 // Получение текущего пользователя
 router.get('/me', authenticate, (req, res) => {
-  res.json({ user: req.user }); // отправляем данные пользователя
+  const { id, email, firstName, lastName } = req.user;
+  res.json({ user: { id, email, firstName, lastName } }); // отправляем данные пользователя
+  console.log('\n\nПользователь на сервере:', id, firstName, lastName, email);
 });
 
 module.exports = router;

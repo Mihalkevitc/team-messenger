@@ -17,4 +17,11 @@ router.get('/', chatController.getChats); // Express самостоятельн�
 // Получение информации о сообщениях чата
 router.get('/:chatId/messages', messageController.getChatMessages);
 
+router.get('/:chatId', authMiddleware, chatController.getChatById);
+router.delete('/:chatId', authMiddleware, chatController.deleteChat);
+//router.post('/:chatId/participants', authMiddleware, chatController.addParticipant);
+router.get('/:chatId/participants', authMiddleware, chatController.getChatParticipants);
+//router.post('/:chatId/messages', authMiddleware, chatController.sendMessage);
+
+
 module.exports = router;
