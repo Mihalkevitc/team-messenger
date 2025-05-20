@@ -1,0 +1,19 @@
+# Используем официальный образ Node.js
+FROM node:18-alpine as build
+
+# Рабочая директория
+WORKDIR /app
+
+# Копируем зависимости
+COPY package*.json ./
+RUN npm install
+
+# Копируем исходный код и собираем проект
+COPY . .
+RUN npm run build
+
+# Используем легковесный nginx для раздачи статики
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
