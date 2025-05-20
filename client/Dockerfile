@@ -1,10 +1,5 @@
-# Используем официальный образ Node.js
 FROM node:18-alpine as build
-
-# Рабочая директория
 WORKDIR /app
-
-# Копируем зависимости
 COPY package*.json ./
 RUN npm install
 

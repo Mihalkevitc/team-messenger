@@ -1,20 +1,16 @@
-# Используем официальный образ Node.js
 FROM node:18-alpine
 
 # Создаем рабочую директорию
 WORKDIR /app
 
-# Копируем package.json и package-lock.json
+# Копируем ТОЛЬКО package.json сначала
 COPY package*.json ./
 
 # Устанавливаем зависимости
 RUN npm install
 
-# Копируем остальные файлы
+# Копируем остальные файлы сервера
 COPY . .
 
-# Открываем порт сервера
 EXPOSE 5000
-
-# Запускаем сервер
 CMD ["npm", "start"]
