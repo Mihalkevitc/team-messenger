@@ -3,40 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
 
-// Создаем экземпляр axios с базовым URL
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
-  withCredentials: true
-});
-
 export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // https://team-messenger.onrender.com
+
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    
     try {
-      const res = await api.post('/api/auth/login', formData);
+      const res = await axios.post('https://team-messenger.onrender.com/api/auth/login', formData);
       localStorage.setItem('token', res.data.token);
-      
-      // Обновляем заголовки axios для последующих запросов
-      api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-      
-      // Перенаправляем на домашнюю страницу
-      navigate('/home');
+      // Принудительно обновляем страницу для всех компонентов
+      window.location.href = '/home';
     } catch (err) {
-      setError(err.response?.data?.error || 'Ошибка авторизации');
-      console.error('Login error:', err);
-    } finally {
-      setIsLoading(false);
+        setError(err.response?.data?.error || 'Ошибка авторизации');
     }
   };
 
@@ -45,7 +31,7 @@ export default function LoginPage() {
       <h2 className="text-center mb-4">Вход</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3" controlId="formEmail">
+        <Form.Group className="mb-3">
           <Form.Label>Email</Form.Label>
           <Form.Control
             type="email"
@@ -53,11 +39,10 @@ export default function LoginPage() {
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required
-            autoComplete="username"
           />
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="formPassword">
+        <Form.Group className="mb-3">
           <Form.Label>Пароль</Form.Label>
           <Form.Control
             type="password"
@@ -65,17 +50,11 @@ export default function LoginPage() {
             value={formData.password}
             onChange={(e) => setFormData({...formData, password: e.target.value})}
             required
-            autoComplete="current-password"
           />
         </Form.Group>
 
-        <Button 
-          variant="primary" 
-          type="submit" 
-          className="w-100"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Вход...' : 'Войти'}
+        <Button variant="primary" type="submit" className="w-100">
+          Войти
         </Button>
       </Form>
     </Container>

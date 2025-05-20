@@ -12,7 +12,10 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || '*', 
+  origin: function (origin, callback) {
+    // разрешаем все origin'ы, включая undefined (например, postman, curl и т.д.)
+    callback(null, true);
+  },
   credentials: true
 }));
 // app.use(cors({
