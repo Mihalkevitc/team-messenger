@@ -1,13 +1,9 @@
-FROM node:18-alpine as build
+FROM node:14
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 # Копируем исходный код и собираем проект
 COPY . .
 RUN npm run build
-
-# Используем легковесный nginx для раздачи статики
-FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
+CMD ["npm", "start"]
