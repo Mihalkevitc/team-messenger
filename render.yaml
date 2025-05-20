@@ -1,0 +1,41 @@
+# render.yaml для Team Messenger
+services:
+  # Клиент (React)
+  - type: web
+    name: team-messenger-client
+    env: static
+    build:
+      dockerfile: client/Dockerfile
+    staticPublishPath: "./build"
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://team-messenger-server.onrender.com
+
+  # Сервер (Node.js + Express)
+  - type: web
+    name: team-messenger-server
+    plan: free
+    build:
+      dockerfile: server/Dockerfile
+    env: node
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: team-messenger-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PG_SSL
+        value: "true"
+    healthCheckPath: /api/health
+
+  # База данных PostgreSQL
+  - type: postgresql
+    name: team-messenger-db
+    plan: free
+    ipAllowList:
+      - 0.0.0.0/0
+    databases:
+      - name: team_messenger
