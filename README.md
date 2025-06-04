@@ -59,7 +59,7 @@ Team Messenger — это веб-приложение для обмена соо
    - Сервер будет работать на `http://localhost:5000`.
 
 ## Развертывание в облаке
-Проект развернут с использованием Renser. Для этого написаны Dockerfile.
+Проект развернут с использованием Render. Для этого написаны Dockerfile.
 
 ## Ссылки
 - **Исходный код:** [GitHub](https://github.com/Mihalkevitc/team-messenger)
