@@ -65,6 +65,28 @@ Team Messenger — это веб-приложение для обмена соо
 - **Исходный код:** [GitHub](https://github.com/Mihalkevitc/team-messenger)
 - **Демо:** [https://team-messenger-client.onrender.com](https://team-messenger-client.onrender.com)
 
+
+## Тестовые данные
+Для тестироания созданы два пользователя:
+1)Иванов Иван
+Email:
+```bash
+Ivanov.23V@yandex.ru
+```
+Password: 
+```bash
+123456789pass
+```
+2)Дмитрий Сидоров
+Email:
+```bash
+Sidorov.23V@yandex.ru
+```
+Password:
+```bash
+123456789pass
+```
+
 ## Автор
 - **Михалькевич Владислав Алексеевич**, группа ИКБО-20-22.
 - Руководитель: **Синицын Анатолий Васильевич**, ст. преподаватель.
